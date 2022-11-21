@@ -53,21 +53,22 @@ def Segment(tokens,name,max_length,threshold,model):
         to_translate.append(sourcelist)
         i+=stepsize
     #pickle_filename=name+'.translated.pcl'
-    print("Translating",lengte,"segments",file=sys.stderr)
+    print("Segmenting",lengte,"segments",file=sys.stderr)
     results=[]
     nr=0
     nrtotranslate=len(to_translate)
     for text in to_translate:
         nr+=1
         print("Inserting punctuation",nr,'/',nrtotranslate,file=sys.stderr,end='\r')
-        results.append(model.restore_punctuation(' '.join(text)))
+        try: results.append(model.restore_punctuation(' '.join(text)))  # if punctuator fails, add text without punctuation
+        except: results.append(' '.join(text))
     segment_endings=[]
     for t in range(len(to_translate)):
         print("Investigating token",t,'/',lengte,file=sys.stderr, end='\r')
         sourcetext=to_translate[t]
         targettext=results[t].split()
         for i in range(len(sourcetext)):
-            if  i < len(targettext) and sourcetext[i]+'.' == targettext[i]:
+            if  i < len(targettext) and (sourcetext[i]+'.' == targettext[i] or sourcetext[i]+'?' == targettext[i]):
                 segmentposition=t+i
                 if not segmentposition in punctuation_counter:
                     punctuation_counter[segmentposition]=1
